@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace Adefagia.Model
 {
@@ -100,10 +103,7 @@ namespace Adefagia.Model
         public ushort offsetPos(ushort idx)
         {
             checkBounds(idx);
-            if (!(idx <= 1))
-            {
-                throw new IndexOutOfRangeException($"The index is {idx} ");
-            }
+            Debug.Assert(1 <= idx && idx <= nKeys());
             return (ushort)(HEADER + 8 * nKeys() + 2 * (idx - 1));
         }
 
@@ -123,13 +123,13 @@ namespace Adefagia.Model
 
         #endregion OFFSET
 
+        #region KEY_VALUE
+
         public ushort kvPos(ushort idx)
         {
             checkBoundsEquals(idx);
             return (ushort)(HEADER + 8 * nKeys() + 2 * nKeys() + getOffset(idx));
         }
-
-        #region KEY_VALUE
 
         public byte[] getKey(ushort idx)
         {
@@ -151,6 +151,24 @@ namespace Adefagia.Model
         }
 
         #endregion KEY_VALUE
+
+        public ushort nodeLookupLE(byte[] key)
+        {
+            var keys = nKeys();
+            for (ushort i = 1; i < keys; i++)
+            {
+                if (getKey(i).Equals(key))
+                {
+                    return i;
+                }
+            }
+            return 0;
+        }
+
+        public void leafInsert(ushort idx, byte[] key, byte[] value)
+        {
+            BNode newN = (BNode)this.MemberwiseClone();
+        }
 
         public ushort nBytes()
         {
